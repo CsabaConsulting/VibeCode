@@ -1,5 +1,6 @@
 import asyncio
 import python_weather
+import os
 from typing import Dict, Any, Type, Optional
 from pydantic import BaseModel, Field
 from langchain_core.tools import BaseTool
@@ -23,18 +24,31 @@ class WeatherTool(BaseTool):
             str: Formatted weather information
         """
         try:
-            async with python_weather.Client() as client:
+            # Set event loop policy for Windows if needed
+            if os.name == 'nt':
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+            
+            # Initialize the client with metric units (Celsius, km/h, etc.)
+            async with python_weather.Client(unit=python_weather.METRIC) as client:
+                # Get the weather for the location
                 weather = await client.get(location)
                 
-                weather_info = (
-                    f"Weather in {location}:\n"
-                    f"- Temperature: {weather.current.temperature}°C (Feels like: {weather.current.feels_like}°C)\n"
-                    f"- Conditions: {weather.current.description}\n"
-                    f"- Humidity: {weather.current.humidity}%\n"
-                    f"- Wind: {weather.current.wind_speed} km/h, {weather.current.wind_direction}\n"
-                )
+                # Format the weather information
+                weather_info = [
+                    f"Weather in {location}:",
+                    f"- Current temperature: {weather.temperature}°C"
+                ]
                 
-                return weather_info
+                # Add forecast for today if available
+                if hasattr(weather, 'forecasts') and weather.forecasts:
+                    today = weather.forecasts[0]
+                    weather_info.extend([
+                        f"- Conditions: {today.sky_text}",
+                        f"- High: {today.high}°C, Low: {today.low}°C",
+                        f"- Precipitation: {today.precip}%"
+                    ])
+                
+                return '\n'.join(weather_info)
                 
         except Exception as e:
             return f"Error getting weather: {str(e)}"
