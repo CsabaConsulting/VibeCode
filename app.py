@@ -2,6 +2,7 @@ import streamlit as st
 from agent import ReActAgent
 from tools.weather_tool import WeatherTool
 from tools.search_tool import SearchTool
+from tools.currency_tool import CurrencyConversionTool
 import os
 
 # Set page config
@@ -34,7 +35,8 @@ with st.sidebar:
             # Initialize the agent with tools
             tools = [
                 SearchTool(),
-                WeatherTool()
+                WeatherTool(),
+                CurrencyConversionTool()
             ]
             st.session_state.agent = ReActAgent(tools=tools)
             st.success("✅ Agent initialized successfully with Gemini!")

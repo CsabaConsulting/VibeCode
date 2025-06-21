@@ -10,3 +10,4 @@ langchain-core>=0.1.21
 langchain>=0.1.15
 langchain-community>=0.0.20
 langsmith>=0.1.0
+requests>=2.31.0
