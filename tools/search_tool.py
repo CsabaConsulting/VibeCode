@@ -8,8 +8,8 @@ class SearchInput(BaseModel):
     max_results: int = Field(default=3, description="Maximum number of results to return")
 
 class SearchTool(BaseTool):
-    name = "search_web"
-    description = "Search the web for information using DuckDuckGo"
+    name: str = "search_web"
+    description: str = "Search the web for information using DuckDuckGo"
     args_schema: Type[BaseModel] = SearchInput
     
     def _run(self, query: str, max_results: int = 3) -> str:

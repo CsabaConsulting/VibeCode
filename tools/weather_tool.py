@@ -8,8 +8,8 @@ class WeatherInput(BaseModel):
     location: str = Field(description="The location to get weather for (e.g., 'San Francisco, CA')")
 
 class WeatherTool(BaseTool):
-    name = "get_weather"
-    description = "Get current weather information for a location"
+    name: str = "get_weather"
+    description: str = "Get current weather information for a location"
     args_schema: Type[BaseModel] = WeatherInput
     
     async def _aget_weather(self, location: str) -> str:

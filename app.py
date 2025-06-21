@@ -22,12 +22,14 @@ if "agent" not in st.session_state:
 # Sidebar for API key input
 with st.sidebar:
     st.title("🔧 Settings")
-    openai_api_key = st.text_input("OpenAI API Key", type="password")
     
-    if openai_api_key and (st.session_state.agent is None or openai_api_key != os.environ.get("OPENAI_API_KEY")):
+    # Google AI Studio API Key input
+    google_api_key = st.text_input("Google AI Studio API Key", type="password")
+    
+    if google_api_key and (st.session_state.agent is None or google_api_key != os.environ.get("GOOGLE_API_KEY")):
         try:
-            # Set the API key
-            os.environ["OPENAI_API_KEY"] = openai_api_key
+            # Set the API key for Google's Generative AI
+            os.environ["GOOGLE_API_KEY"] = google_api_key
             
             # Initialize the agent with tools
             tools = [
@@ -35,7 +37,7 @@ with st.sidebar:
                 WeatherTool()
             ]
             st.session_state.agent = ReActAgent(tools=tools)
-            st.success("✅ Agent initialized successfully!")
+            st.success("✅ Agent initialized successfully with Gemini!")
             
         except Exception as e:
             st.error(f"Failed to initialize agent: {str(e)}")
@@ -43,8 +45,8 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("## About")
     st.markdown(
-        "This is an agentic assistant powered by LangGraph's ReAct agent. "
-        "It can search the web and check the weather."
+        "This is an agentic assistant powered by Google's Gemini model. "
+        "It can search the web and check the weather using tools."
     )
     
     if st.button("Clear Chat"):
@@ -71,8 +73,8 @@ if prompt := st.chat_input("What would you like to know?"):
     
     # Display assistant response
     with st.chat_message("assistant"):
-        if not openai_api_key:
-            st.error("Please enter your OpenAI API key in the sidebar.")
+        if not google_api_key:
+            st.error("Please enter your Google AI Studio API key in the sidebar.")
         elif st.session_state.agent is None:
             st.error("Agent not initialized. Please check your API key and try again.")
         else:
