@@ -1,9 +1,10 @@
-from typing import Dict, List, Any, Callable, Optional, Type, Union
+from typing import Dict, List, Any, Callable, Optional, Type, Union, Sequence
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import BaseTool
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate, SystemMessagePromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage, SystemMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.agents import AgentExecutor
 import os
 from dotenv import load_dotenv
 
@@ -29,22 +30,21 @@ class ReActAgent:
         self.tools = tools
         self.conversation_history: List[BaseMessage] = []
         
-        # Create the agent prompt
-        prompt = ChatPromptTemplate.from_messages([
-            SystemMessagePromptTemplate.from_template(
+        # Create the agent with the tools and LLM
+        self.agent = create_react_agent(
+            self.llm,
+            self.tools,
+            prompt=(
                 "You are a helpful assistant that can use tools to answer questions. "
                 "Always provide clear and concise responses."
-            ),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad")
-        ])
+            )
+        )
         
-        # Create the agent
-        self.agent = create_react_agent(
-            llm=self.llm,
+        # Create the agent executor
+        self.agent_executor = AgentExecutor(
+            agent=self.agent,
             tools=self.tools,
-            prompt=prompt,
+            verbose=True,
             handle_parsing_errors=True
         )
     
@@ -76,10 +76,9 @@ class ReActAgent:
             formatted_history = self._format_chat_history(self.conversation_history[:-1])
             
             # Run the agent
-            response = self.agent.invoke({
+            response = self.agent_executor.invoke({
                 "input": user_query,
-                "chat_history": formatted_history,
-                "agent_scratchpad": []
+                "chat_history": formatted_history
             })
             
             # Get the response content
