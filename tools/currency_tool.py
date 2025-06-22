@@ -43,26 +43,28 @@ class CurrencyConversionTool(BaseTool):
             str: The converted amount and exchange rate information
         """
         try:
-            # Use a free exchange rate API (e.g., exchangerate.host)
-            base_url = "https://api.exchangerate.host/latest"
+            # Use the Frankfurter API which doesn't require an API key
+            base_url = f"https://api.frankfurter.app/latest"
             params = {
-                "base": from_currency.upper(),
-                "symbols": to_currency.upper(),
-                "places": 6
+                "from": from_currency.upper(),
+                "to": to_currency.upper(),
+                "amount": amount
             }
             
             response = requests.get(base_url, params=params)
             response.raise_for_status()
             data = response.json()
             
-            if not data.get('success', False):
-                return f"Error: {data.get('error', {}).get('info', 'Failed to fetch exchange rates')}"
+            if 'error' in data:
+                return f"Error: {data.get('error', 'Failed to fetch exchange rates')}"
             
-            rate = data['rates'].get(to_currency.upper())
-            if rate is None:
+            # Get the converted amount and rate from the response
+            converted_amount = data['rates'].get(to_currency.upper())
+            if converted_amount is None:
                 return f"Error: Could not find exchange rate for {to_currency}"
             
-            converted_amount = amount * rate
+            # Calculate the actual rate (amount might be different if input was rounded)
+            rate = converted_amount / amount
             
             return (
                 f"{amount} {from_currency.upper()} = {converted_amount:.2f} {to_currency.upper()}\n"
